@@ -12,12 +12,12 @@ const {
 const questions = [{
         type: 'input',
         name: 'model',
-        message: 'Model name'
+        message: 'would you like to set the module name'
     },
     {
         type: 'confirm',
         name: 'isFirst',
-        message: 'Model name'
+        message: 'is it your first module'
     }
 ];
 

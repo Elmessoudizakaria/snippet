@@ -34,7 +34,8 @@ const folderCreator = (modelName, isFirst) => {
             stdio: 'inherit'
         });
 
-        log(chalk.green('Model and sub folders created'))
+        const message = isFirst ? 'Your module and service sub folder has been created successfully' : 'Your module has been created successfully';
+        log(chalk.blue(message))
     } catch (err) {
         console.error(err)
     }
