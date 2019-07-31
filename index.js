@@ -9,20 +9,21 @@ const {
     folderCreator
 } = require('./creator');
 
-const questions = [{
+
+const modelQuestions = [{
         type: 'input',
         name: 'model',
-        message: 'would you like to set the module name'
+        message: 'would you like to set the model name'
     },
     {
         type: 'confirm',
         name: 'isFirst',
-        message: 'is it your first module'
+        message: 'is it your first model'
     },
     {
         type: 'confirm',
         name: 'isAtts',
-        message: 'Do you wanna add attributes to this module ?'
+        message: 'Do you wanna add attributes to this model ?'
     }
 ];
 
@@ -34,7 +35,7 @@ const modelQuestion = [{
     {
         type: 'list',
         name: 'attsType',
-        choices: ['String', 'Number', 'Boolean']
+        choices: ['String', 'Number', 'Boolean', '[String]', '[Number]', 'Date']
     },
     {
         type: 'confirm',
@@ -67,7 +68,7 @@ program
     .alias('a')
     .description('add model')
     .action(() => {
-        prompt(questions).then(answers => {
+        prompt(modelQuestions).then(answers => {
             if (answers.isAtts) {
                 addAttrs(answers);
             } else {

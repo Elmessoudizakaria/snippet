@@ -7,14 +7,15 @@ const folderCreator = (modelName, isFirst, schema) => {
     try {
         // creating necessairy folders
         if (isFirst) {
-            const folderCommand = 'cd ./src && mkdir dto interfaces schemas externals models';
+            const folderCommand = 'cd ./src && mkdir dto interfaces schemas externals models repositories shared';
             child_process.execSync(folderCommand, {
                 stdio: 'inherit'
             });
         }
 
         // creating necessairy files
-        const fileCommand = 'touch ./src/dto/' + modelName + '.dto.ts  ./src/interfaces/' + modelName + '.interface.ts ./src/schemas/' + modelName + '.schema.ts';
+        const fileCommand = 'touch ./src/dto/' + modelName + '.dto.ts  ./src/interfaces/' + modelName + '.interface.ts ' +
+            './src/schemas/' + modelName + '.schema.ts ./src/repositories/' + modelName + '.repository.ts';
         child_process.execSync(fileCommand, {
             stdio: 'inherit'
         });
@@ -23,6 +24,7 @@ const folderCreator = (modelName, isFirst, schema) => {
             if (schema !== null) {
                 schemaCreator(schema, modelName);
                 interfaceCreator(schema, modelName);
+                repoCreator(modelName);
             }
         }, 250);
 
@@ -54,10 +56,9 @@ const schemaCreator = (schema, modelName) => {
 
     let output = '';
     for (let property in schema) {
-        log(schema[property]);
-        output += property + ': { type:' + schema[property].type + '}, ';
+        output += property + ': { type: ' + schema[property].type + '},\n';
     }
-    const content = `import * as mongoose from '@nestjs/mongoose'
+    const content = `import * as mongoose from 'mongoose';
     export const ${modelName}Schema = new mongoose.Schema({${output}}) `;
 
     fs.appendFile(`./src/schemas/${modelName}.schema.ts`, content, function (err) {
@@ -73,12 +74,13 @@ const interfaceCreator = (schema, modelName) => {
 
     let output = '';
     for (let property in schema) {
-        log(schema[property]);
-        output += 'readonly ' + property + ': ' + schema[property].type.toString().toLowerCase() + '; ';
+        const propTYpe = schema[property].type.toString() !== 'Date' ?
+            schema[property].type.toString().toLowerCase() :
+            schema[property].type.toString();
+        output += 'readonly ' + property + ': ' + propTYpe + ';\n';
     }
-    const content = `import * as mongoose from '@nestjs/mongoose'
+    const content = `import * as mongoose from 'mongoose';
     export interface ${capitalize(modelName)} extends mongoose.Document{${output}} `;
-    log(content);
     fs.appendFile(`./src/interfaces/${modelName}.interface.ts`, content, function (err) {
         if (err) {
             log(chalk.red(err))
@@ -88,6 +90,27 @@ const interfaceCreator = (schema, modelName) => {
     });
 }
 
+const repoCreator = (modelName) => {
+
+    const content = `
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ${capitalize(modelName)} } from '../interfaces/${modelName}.interface';
+
+@Injectable()
+export class ${capitalize(modelName)}Repository {
+constructor(@InjectModel('${capitalize(modelName)}') private readonly model: Model<${capitalize(modelName)}>) {}
+}
+    `;
+    fs.appendFile(`./src/repositories/${modelName}.repository.ts`, content, function (err) {
+        if (err) {
+            log(chalk.red(err))
+        } else {
+            log(chalk.green('Repository Created!'))
+        };
+    });
+}
 const capitalize = (name) => {
     if (typeof name !== 'string') return ''
     return name.charAt(0).toUpperCase() + name.slice(1)
