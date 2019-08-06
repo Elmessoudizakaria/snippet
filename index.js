@@ -10,7 +10,7 @@ const {
 } = require('./creator');
 
 
-const modelQuestions = [{
+const serviceQuestions = [{
         type: 'input',
         name: 'model',
         message: 'would you like to set the model name'
@@ -68,7 +68,7 @@ program
     .alias('a')
     .description('add model')
     .action(() => {
-        prompt(modelQuestions).then(answers => {
+        prompt(serviceQuestions).then(answers => {
             if (answers.isAtts) {
                 addAttrs(answers);
             } else {

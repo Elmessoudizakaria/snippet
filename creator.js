@@ -25,6 +25,7 @@ const folderCreator = (modelName, isFirst, schema) => {
                 schemaCreator(schema, modelName);
                 interfaceCreator(schema, modelName);
                 repoCreator(modelName);
+                appModuleModifier(modelName);
             }
         }, 250);
 
@@ -101,6 +102,14 @@ import { ${capitalize(modelName)} } from '../interfaces/${modelName}.interface';
 @Injectable()
 export class ${capitalize(modelName)}Repository {
 constructor(@InjectModel('${capitalize(modelName)}') private readonly model: Model<${capitalize(modelName)}>) {}
+
+async findAll():Promise<${capitalize(modelName)}[]>{
+    return await this.model.find();
+}
+async findById(id:string):Promise<${capitalize(modelName)}>{
+    return await this.model.findById(id);
+}
+
 }
     `;
     fs.appendFile(`./src/repositories/${modelName}.repository.ts`, content, function (err) {
@@ -110,6 +119,33 @@ constructor(@InjectModel('${capitalize(modelName)}') private readonly model: Mod
             log(chalk.green('Repository Created!'))
         };
     });
+}
+
+
+const appModuleModifier = (modelName) => {
+    const content = `
+import { Module } from '@nestjs/common';
+import { ${capitalize(modelName)}Controller } from './${modelName}.controller';
+import { ${capitalize(modelName)}Service } from './${modelName}.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ${modelName}Schema } from '../../schemas/${modelName}.schema';
+import { ${capitalize(modelName)}Repository } from '../../repositories/${modelName}.repository';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: '${capitalize(modelName)}', schema: ${modelName}Schema }]),
+  ],
+  controllers: [${capitalize(modelName)}Controller],
+  providers: [${capitalize(modelName)}Service, ${capitalize(modelName)}Repository],
+})
+export class ${capitalize(modelName)}Module {}
+
+    `;
+    try {
+        fs.writeFileSync(`./src/models/${modelName}/${modelName}.module.ts`, content);
+    } catch (error) {
+        console.log(error);
+    }
 }
 const capitalize = (name) => {
     if (typeof name !== 'string') return ''
